@@ -13,7 +13,7 @@ namespace BabyMoo.Data
         public DbSet<CartModel> Carts { get; set; }     
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
-
+       
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

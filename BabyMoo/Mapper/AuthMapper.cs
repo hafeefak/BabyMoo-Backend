@@ -4,6 +4,7 @@ using BabyMoo.DTOs.Product;
 using BabyMoo.DTOs.Category;
 using BabyMoo.Models;
 using BabyMoo.DTOs.Cart;
+using BabyMoo.DTOs.User;
 
 namespace BabyMoo.Mapper
 {
@@ -23,6 +24,8 @@ namespace BabyMoo.Mapper
                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price))
                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.ImageUrl));
+            CreateMap<User, UserViewDto>();
+
 
             CreateMap<User, ResultDto>();
         }

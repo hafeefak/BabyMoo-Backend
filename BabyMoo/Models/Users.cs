@@ -22,5 +22,7 @@ namespace BabyMoo.Models
         public bool Blocked { get; set; } = false;
 
         public Guid Salt { get; set; } = Guid.NewGuid();
+       
+
     }
 }

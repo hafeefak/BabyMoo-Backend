@@ -58,8 +58,11 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ICartService, CartService>(); builder.Services.AddScoped<BabyMoo.CloudinaryService.ICloudinaryService, BabyMoo.CloudinaryService.CloudinaryService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<BabyMoo.CloudinaryService.ICloudinaryService, BabyMoo.CloudinaryService.CloudinaryService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<BabyMoo.Services.User.IUserService, BabyMoo.Services.User.UserService>();
+
 
 // ✅ Configure Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>

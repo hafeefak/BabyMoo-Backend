@@ -26,13 +26,13 @@ namespace BabyMoo.Service.AuthService
 
         public async Task<bool> RegisterAsync(Register registerDto)
         {
-            // Check if user already exists
             if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
                 return false;
 
-            // Map and hash password
             var user = _mapper.Map<User>(registerDto);
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+
+            user.Role = registerDto.Role ?? "User"; // ✅ set User/Admin
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -40,15 +40,13 @@ namespace BabyMoo.Service.AuthService
             return true;
         }
 
+
         public async Task<ResultDto> LoginAsync(Login loginDto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
             {
-                return new ResultDto
-                {
-                    Error = "Invalid email or password"
-                };
+                return new ResultDto { Error = "Invalid email or password" };
             }
 
             string token = GenerateJwtToken(user);
@@ -57,18 +55,21 @@ namespace BabyMoo.Service.AuthService
                 Message = "Login successful",
                 Token = token,
                 Email = user.Email,
-                Name = user.UserName
+                Name = user.UserName,
+                Role = user.Role // ✅ return Role
             };
         }
+
 
         private string GenerateJwtToken(User user)
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.UserName)
-            };
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(ClaimTypes.Role, user.Role) // ✅ include role
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -82,5 +83,6 @@ namespace BabyMoo.Service.AuthService
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BabyMoo.DTOs.Product;
 using BabyMoo.Models;
 using BabyMoo.Services.Products;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +18,7 @@ namespace BabyMoo.Controllers
             _productService = productService;
         }
 
-        // ✅ GET all products
+       
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -25,7 +26,6 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<ProductViewDto>>(200, "Product list fetched", products));
         }
 
-        // ✅ GET product by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -36,7 +36,7 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<ProductViewDto>(200, "Product fetched", product));
         }
 
-        // ✅ GET products by category
+      
         [HttpGet("category/{category}")]
         public async Task<IActionResult> GetByCategory(string category)
         {
@@ -44,7 +44,6 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<ProductViewDto>>(200, $"Products in category '{category}'", products));
         }
 
-        // ✅ SEARCH product
         [HttpGet("search/{text}")]
         public async Task<IActionResult> Search(string text)
         {
@@ -52,7 +51,8 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<ProductViewDto>>(200, $"Search results for '{text}'", results));
         }
 
-        // ✅ CREATE new product (with image)
+       
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ProductFormDto form)
         {
@@ -77,7 +77,7 @@ namespace BabyMoo.Controllers
                 return BadRequest(new ApiResponse<string>(400, "Product creation failed."));
         }
 
-        // ✅ UPDATE product (with image)
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromForm] ProductFormDto form)
         {
@@ -102,7 +102,7 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<string>(200, "Product updated successfully."));
         }
 
-        // ✅ DELETE product
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
