@@ -14,12 +14,10 @@ namespace BabyMoo.Mapper
             CreateMap<Register, User>().ReverseMap();
             CreateMap<Login, User>().ReverseMap();
             CreateMap<Category, CategoryViewDto>().ReverseMap();
+            CreateMap<Product, ProductViewDto>()
+                           .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName));
 
-            CreateMap<Models.Product, ProductViewDto>()
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName));
-
-            CreateMap<ProductViewDto, Models.Product>()
-                .ForMember(dest => dest.Category, opt => opt.Ignore());
+            CreateMap<ProductDto, Product>();
 
             CreateMap<CartItem, CartItemDto>()
                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))

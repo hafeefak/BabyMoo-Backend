@@ -6,10 +6,9 @@ namespace BabyMoo.Models
     {
         [Key]
         public int CategoryId { get; set; }
+        [Required]
+        public string CategoryName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Category name is required")]
-        [StringLength(50)]
-        public string CategoryName { get; set; }  
-        public virtual List<Product>? Products { get; set; }
+        public virtual ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }
