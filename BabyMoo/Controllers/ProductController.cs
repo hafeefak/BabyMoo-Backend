@@ -1,8 +1,8 @@
 ﻿using BabyMoo.DTOs.Product;
+using BabyMoo.Middleware;
 using BabyMoo.Models;
 using BabyMoo.Services.Products;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BabyMoo.Controllers
@@ -18,7 +18,6 @@ namespace BabyMoo.Controllers
             _productService = productService;
         }
 
-       
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -30,13 +29,9 @@ namespace BabyMoo.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var product = await _productService.GetProductsById(id);
-            if (product == null)
-                return NotFound(new ApiResponse<string>(404, "Product not found"));
-
             return Ok(new ApiResponse<ProductViewDto>(200, "Product fetched", product));
         }
 
-      
         [HttpGet("category/{category}")]
         public async Task<IActionResult> GetByCategory(string category)
         {
@@ -51,13 +46,12 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<ProductViewDto>>(200, $"Search results for '{text}'", results));
         }
 
-       
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ProductFormDto form)
         {
             if (form.Image == null || form.Image.Length == 0)
-                return BadRequest(new ApiResponse<string>(400, "Image is required"));
+                throw new BadRequestException("Image is required");
 
             var dto = new ProductDto
             {
@@ -66,15 +60,10 @@ namespace BabyMoo.Controllers
                 Price = form.Price,
                 Quantity = form.Quantity,
                 CategoryName = form.CategoryName
-
             };
 
-            var result = await _productService.CreateProduct(dto, form.Image);
-
-            if (result!=null)
-                return Ok(new ApiResponse<string>(200, "Product added successfully."));
-            else
-                return BadRequest(new ApiResponse<string>(400, "Product creation failed."));
+            await _productService.CreateProduct(dto, form.Image);
+            return Ok(new ApiResponse<string>(200, "Product added successfully"));
         }
 
         [Authorize(Roles = "Admin")]
@@ -82,7 +71,7 @@ namespace BabyMoo.Controllers
         public async Task<IActionResult> Update(int id, [FromForm] ProductFormDto form)
         {
             if (form.Image == null || form.Image.Length == 0)
-                return BadRequest(new ApiResponse<string>(400, "Image is required"));
+                throw new BadRequestException("Image is required");
 
             var dto = new ProductDto
             {
@@ -91,25 +80,17 @@ namespace BabyMoo.Controllers
                 Price = form.Price,
                 Quantity = form.Quantity,
                 CategoryName = form.CategoryName
-
             };
 
-            var result = await _productService.UpdateProduct(id, dto, form.Image);
-
-            if (!result)
-                return NotFound(new ApiResponse<string>(404, $"Product with ID {id} not found"));
-
-            return Ok(new ApiResponse<string>(200, "Product updated successfully."));
+            await _productService.UpdateProduct(id, dto, form.Image);
+            return Ok(new ApiResponse<string>(200, "Product updated successfully"));
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _productService.DeleteProduct(id);
-            if (!success)
-                return NotFound(new ApiResponse<string>(404, "Product not found"));
-
+            await _productService.DeleteProduct(id);
             return Ok(new ApiResponse<string>(200, "Product deleted successfully"));
         }
     }

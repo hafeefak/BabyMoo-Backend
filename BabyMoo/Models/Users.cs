@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CloudinaryDotNet.Actions;
 
 namespace BabyMoo.Models
 {
@@ -22,7 +23,13 @@ namespace BabyMoo.Models
         public bool Blocked { get; set; } = false;
 
         public Guid Salt { get; set; } = Guid.NewGuid();
-       
+        public virtual CartModel? Carts{ get; set; }
+        public virtual ICollection<Wishlist> Wishlists { get; set; } = new HashSet<Wishlist>();
+
+
+        public virtual ICollection<Address> Addresses { get; set; } = new HashSet<Address>();
+        //public virtual ICollection<Order> Orders { get; set; } = new HashSet<Order>();
+
 
     }
 }

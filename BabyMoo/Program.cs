@@ -12,6 +12,7 @@ using Microsoft.OpenApi.Models;
 using BabyMoo.CloudinaryService;
 using BabyMoo.Services.Wishlists;
 using BabyMoo.Services.Addresses;
+using CloudinaryDotNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,8 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 
 
 
+
+
 // ✅ Configure Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -116,6 +119,7 @@ try
     // Configure the HTTP request pipeline
     if (app.Environment.IsDevelopment())
     {
+        app.UseMiddleware<BabyMoo.Middleware.ExceptionMiddleware>();
         app.UseDeveloperExceptionPage();
         app.UseSwagger();
         app.UseSwaggerUI();

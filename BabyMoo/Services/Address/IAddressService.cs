@@ -6,7 +6,7 @@ namespace BabyMoo.Services.Addresses
     {
         Task<IEnumerable<AddressDto>?> GetAddress(int userId);
         Task<AddressDto> AddAddress(int userId, CreateAddressDto addressDto);
-        Task<bool> RemoveAddress(int userId, int addressId);
+        Task RemoveAddress(int userId, int addressId);
         Task<AddressDto> UpdateAddress(int userId, AddressDto addressDto);
     }
 }

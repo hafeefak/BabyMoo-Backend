@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using BabyMoo.Data;
 using BabyMoo.DTOs.Category;
-
 using BabyMoo.Models;
+using BabyMoo.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 namespace BabyMoo.Services.Category
@@ -18,28 +18,25 @@ namespace BabyMoo.Services.Category
             _mapper = mapper;
         }
 
-        // Get all categories
         public async Task<List<CategoryViewDto>> GetAllCategories()
         {
             var categories = await _context.Categories.ToListAsync();
             return _mapper.Map<List<CategoryViewDto>>(categories);
         }
 
-        // Add a new category
+ 
         public async Task<bool> AddCategory(CategoryViewDto categoryDto)
         {
             if (categoryDto == null)
-                throw new ArgumentNullException(nameof(categoryDto));
+                throw new BadRequestException("Category data is required");
 
-            // Check if category with same name exists
             bool exists = await _context.Categories
                 .AnyAsync(c => c.CategoryName.ToLower() == categoryDto.CategoryName.ToLower());
 
             if (exists)
-                throw new Exception("Category already exists.");
+                throw new ConflictException("Category already exists");
 
             var category = _mapper.Map<Models.Category>(categoryDto);
-
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 

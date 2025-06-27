@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BabyMoo.DTOs.Auth;
 using BabyMoo.Service.AuthService;
+using BabyMoo.Models;
+using BabyMoo.Middleware; 
 
 namespace BabyMoo.Controllers
 {
@@ -20,53 +22,21 @@ namespace BabyMoo.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] Register regDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+            if (!ModelState.IsValid)
+                throw new BadRequestException("Invalid registration data.");
 
-                var success = await _authService.RegisterAsync(regDto);
-
-                if (!success)
-                {
-                    return Conflict(new { message = "User already exists." });
-                }
-
-                return Ok(new { message = "Registration successful." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Registration error: {ex.Message}");
-                return StatusCode(500, "Internal server error.");
-            }
+            await _authService.RegisterAsync(regDto); 
+            return Ok(new ApiResponse<string>(200, "Registration successful"));
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] Login loginDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+            if (!ModelState.IsValid)
+                throw new BadRequestException("Invalid login data.");
 
-                var result = await _authService.LoginAsync(loginDto);
-
-                if (!string.IsNullOrEmpty(result.Error))
-                {
-                    return Unauthorized(new { message = result.Error });
-                }
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Login error: {ex.Message}");
-                return StatusCode(500, "Internal server error.");
-            }
+            var result = await _authService.LoginAsync(loginDto); 
+            return Ok(new ApiResponse<ResultDto>(200, "Login successful", result));
         }
     }
 }

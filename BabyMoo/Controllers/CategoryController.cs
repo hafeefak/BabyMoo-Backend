@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BabyMoo.DTOs.Category;
+using BabyMoo.Models;
 using BabyMoo.Services.Category;
-
-
 
 namespace BabyMoo.Controllers
 {
@@ -18,19 +17,17 @@ namespace BabyMoo.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<CategoryViewDto>>> GetAll()
+        public async Task<ActionResult<ApiResponse<List<CategoryViewDto>>>> GetAll()
         {
-            return await _categoryService.GetAllCategories();
+            var categories = await _categoryService.GetAllCategories();
+            return Ok(new ApiResponse<List<CategoryViewDto>>(200, "Categories retrieved", categories));
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCategory(CategoryViewDto categoryDto)
+        public async Task<IActionResult> AddCategory([FromBody] CategoryViewDto categoryDto)
         {
-            var result = await _categoryService.AddCategory(categoryDto);
-            if (result)
-                return Ok("Category added successfully.");
-            return BadRequest("Failed to add category.");
+            await _categoryService.AddCategory(categoryDto);
+            return Ok(new ApiResponse<string>(200, "Category added successfully"));
         }
     }
-
 }

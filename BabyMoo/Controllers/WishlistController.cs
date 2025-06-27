@@ -19,26 +19,20 @@ namespace BabyMoo.Controllers
             _wishlistService = wishlistService;
         }
 
-      
         private int GetUserId()
         {
             return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         }
 
-      
         [HttpPost("{productId}")]
         public async Task<IActionResult> Add(int productId)
         {
             var userId = GetUserId();
             var result = await _wishlistService.AddToWishlist(userId, productId);
 
-            if (!result)
-                return BadRequest(new ApiResponse<string>(400, "Product already exists in wishlist"));
-
             return Ok(new ApiResponse<string>(200, "Product added to wishlist"));
         }
 
-      
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -48,15 +42,11 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<ProductViewDto>>(200, "Wishlist fetched successfully", wishlist));
         }
 
-      
         [HttpDelete("{productId}")]
         public async Task<IActionResult> Remove(int productId)
         {
             var userId = GetUserId();
-            var result = await _wishlistService.RemoveFromWishlist(userId, productId);
-
-            if (!result)
-                return NotFound(new ApiResponse<string>(404, "Product not found in wishlist"));
+            await _wishlistService.RemoveFromWishlist(userId, productId);
 
             return Ok(new ApiResponse<string>(200, "Product removed from wishlist"));
         }

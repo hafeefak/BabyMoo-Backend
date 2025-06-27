@@ -1,8 +1,8 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using BabyMoo.Data;
 using BabyMoo.DTOs.Cart;
 using BabyMoo.Models;
+using BabyMoo.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 namespace BabyMoo.Services.Cart
@@ -18,11 +18,13 @@ namespace BabyMoo.Services.Cart
             _mapper = mapper;
         }
 
-        public async Task<CartViewDto?> AddToCart(int userId, int productId, int quantity)
+        public async Task<CartViewDto> AddToCart(int userId, int productId, int quantity)
         {
             var cart = await GetOrCreateCart(userId);
             var product = await _context.Products.FindAsync(productId);
-            if (product == null) return null;
+
+            if (product == null)
+                throw new NotFoundException("Product not found");
 
             var existingItem = await _context.CartItems
                 .FirstOrDefaultAsync(i => i.CartId == cart.Id && i.ProductId == productId);
@@ -48,7 +50,7 @@ namespace BabyMoo.Services.Cart
             return await GetCartItems(userId);
         }
 
-        public async Task<CartViewDto?> GetCartItems(int userId)
+        public async Task<CartViewDto> GetCartItems(int userId)
         {
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
@@ -56,9 +58,9 @@ namespace BabyMoo.Services.Cart
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
-                return null;
+                throw new NotFoundException("Cart is empty or not found");
 
-            var cartView = new CartViewDto
+            return new CartViewDto
             {
                 Items = cart.CartItems.Select(i => new CartItemDto
                 {
@@ -72,20 +74,20 @@ namespace BabyMoo.Services.Cart
                 }).ToList(),
                 TotalAmount = cart.CartItems.Sum(i => i.TotalPrice)
             };
-
-            return cartView;
         }
 
-        public async Task<CartViewDto?> RemoveFromCart(int userId, int cartItemId)
+        public async Task<CartViewDto> RemoveFromCart(int userId, int cartItemId)
         {
             var cart = await _context.Carts
-                .Include(c => c.CartItems) 
+                .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            if (cart == null) return null;
+            if (cart == null)
+                throw new NotFoundException("Cart not found");
 
             var item = cart.CartItems.FirstOrDefault(i => i.Id == cartItemId);
-            if (item == null) return null;
+            if (item == null)
+                throw new NotFoundException("Item not found in cart");
 
             _context.CartItems.Remove(item);
             await _context.SaveChangesAsync();
@@ -93,23 +95,30 @@ namespace BabyMoo.Services.Cart
             return await GetCartItems(userId);
         }
 
-        public async Task<CartViewDto?> AddQuantity(int userId, int productId, int quantity)
+        public async Task<CartViewDto> AddQuantity(int userId, int productId, int quantity)
         {
             return await AddToCart(userId, productId, quantity);
         }
 
-        public async Task<CartViewDto?> ReduceQuantity(int userId, int productId, int quantity)
+        public async Task<CartViewDto> ReduceQuantity(int userId, int productId, int quantity)
         {
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            var item = cart?.CartItems?.FirstOrDefault(i => i.ProductId == productId);
-            if (item == null) return null;
+            if (cart == null)
+                throw new NotFoundException("Cart not found");
+
+            var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
+            if (item == null)
+                throw new NotFoundException("Product not found in cart");
 
             item.Quantity -= quantity;
+
             if (item.Quantity <= 0)
+            {
                 _context.CartItems.Remove(item);
+            }
             else
             {
                 var product = await _context.Products.FindAsync(productId);
@@ -120,13 +129,14 @@ namespace BabyMoo.Services.Cart
             return await GetCartItems(userId);
         }
 
-        public async Task<CartViewDto?> ClearCart(int userId)
+        public async Task<CartViewDto> ClearCart(int userId)
         {
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            if (cart == null || cart.CartItems == null) return null;
+            if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
+                throw new NotFoundException("Cart already empty or does not exist");
 
             _context.CartItems.RemoveRange(cart.CartItems);
             await _context.SaveChangesAsync();
@@ -134,7 +144,7 @@ namespace BabyMoo.Services.Cart
             return new CartViewDto { Items = new List<CartItemDto>(), TotalAmount = 0 };
         }
 
-        public async Task<CartViewDto?> AllUsersCart(int userId, int productId, int quantity)
+        public async Task<CartViewDto> AllUsersCart(int userId, int productId, int quantity)
         {
             return await AddToCart(userId, productId, quantity);
         }
@@ -143,24 +153,17 @@ namespace BabyMoo.Services.Cart
         {
             var userExists = await _context.Users.AnyAsync(u => u.UserId == userId);
             if (!userExists)
-                throw new Exception($"User with ID {userId} does not exist.");
+                throw new NotFoundException($"User with ID {userId} does not exist");
 
-            
             var cart = await _context.Carts.FirstOrDefaultAsync(c => c.UserId == userId);
-
-          
             if (cart == null)
             {
-                cart = new CartModel
-                {
-                    UserId = userId
-                };
+                cart = new CartModel { UserId = userId };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();
             }
 
             return cart;
         }
-
     }
 }

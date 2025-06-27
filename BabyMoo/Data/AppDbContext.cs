@@ -1,16 +1,17 @@
 ﻿using BabyMoo.Models;
 using Microsoft.EntityFrameworkCore;
+using BabyMoo.Configurations;
 
 namespace BabyMoo.Data
 {
-    public class AppDbContext:DbContext
+    public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<CartModel> Carts { get; set; }     
+        public DbSet<CartModel> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -19,36 +20,10 @@ namespace BabyMoo.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryId);
-
-            modelBuilder.Entity<Wishlist>()
-      .HasKey(w => w.WishlistId);
-
-            modelBuilder.Entity<Wishlist>()
-                .HasIndex(w => new { w.UserId, w.ProductId })
-                .IsUnique();
-
-            modelBuilder.Entity<Wishlist>()
-                .HasOne(w => w.User)
-                .WithMany()
-                .HasForeignKey(w => w.UserId)
-                .OnDelete(DeleteBehavior.Cascade); 
-
-            modelBuilder.Entity<Wishlist>()
-                .HasOne(w => w.Product)
-                .WithMany()
-                .HasForeignKey(w => w.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Address>()
-       .HasOne(a => a.User)
-       .WithMany()
-       .HasForeignKey(a => a.UserId);
-
-
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new WishlistConfiguration());
+            modelBuilder.ApplyConfiguration(new AddressConfiguration());
+            modelBuilder.ApplyConfiguration(new ProductConfiguration());
         }
     }
 }
