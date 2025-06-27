@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using BabyMoo.CloudinaryService;
 using BabyMoo.Services.Wishlists;
+using BabyMoo.Services.Addresses;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +63,8 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<BabyMoo.CloudinaryService.ICloudinaryService, BabyMoo.CloudinaryService.CloudinaryService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<BabyMoo.Services.User.IUserService, BabyMoo.Services.User.UserService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
+
 
 
 // ✅ Configure Entity Framework
