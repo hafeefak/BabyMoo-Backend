@@ -19,13 +19,13 @@ namespace BabyMoo.Controllers
             _wishlistService = wishlistService;
         }
 
-        // ✅ Get userId from token claims
+      
         private int GetUserId()
         {
             return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         }
 
-        // ✅ Add product to wishlist
+      
         [HttpPost("{productId}")]
         public async Task<IActionResult> Add(int productId)
         {
@@ -38,7 +38,7 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<string>(200, "Product added to wishlist"));
         }
 
-        // ✅ Get all wishlist products for the user
+      
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -48,7 +48,7 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<ProductViewDto>>(200, "Wishlist fetched successfully", wishlist));
         }
 
-        // ✅ Remove product from wishlist
+      
         [HttpDelete("{productId}")]
         public async Task<IActionResult> Remove(int productId)
         {

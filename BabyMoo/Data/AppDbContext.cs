@@ -13,7 +13,8 @@ namespace BabyMoo.Data
         public DbSet<CartModel> Carts { get; set; }     
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
-       
+        public DbSet<Address> Addresses { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -34,13 +35,18 @@ namespace BabyMoo.Data
                 .HasOne(w => w.User)
                 .WithMany()
                 .HasForeignKey(w => w.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // Optional but recommended
+                .OnDelete(DeleteBehavior.Cascade); 
 
             modelBuilder.Entity<Wishlist>()
                 .HasOne(w => w.Product)
                 .WithMany()
                 .HasForeignKey(w => w.ProductId)
-                .OnDelete(DeleteBehavior.Cascade); // Optional but recommended
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Address>()
+       .HasOne(a => a.User)
+       .WithMany()
+       .HasForeignKey(a => a.UserId);
 
 
         }

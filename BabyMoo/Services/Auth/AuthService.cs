@@ -32,7 +32,7 @@ namespace BabyMoo.Service.AuthService
             var user = _mapper.Map<User>(registerDto);
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
-            user.Role = registerDto.Role ?? "User"; // ✅ set User/Admin
+            user.Role = registerDto.Role ?? "User"; 
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -56,7 +56,7 @@ namespace BabyMoo.Service.AuthService
                 Token = token,
                 Email = user.Email,
                 Name = user.UserName,
-                Role = user.Role // ✅ return Role
+                Role = user.Role
             };
         }
 
@@ -68,7 +68,7 @@ namespace BabyMoo.Service.AuthService
         new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
         new Claim(ClaimTypes.Email, user.Email),
         new Claim(ClaimTypes.Name, user.UserName),
-        new Claim(ClaimTypes.Role, user.Role) // ✅ include role
+        new Claim(ClaimTypes.Role, user.Role) 
     };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
