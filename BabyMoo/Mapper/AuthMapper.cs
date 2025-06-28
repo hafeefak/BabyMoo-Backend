@@ -6,6 +6,9 @@ using BabyMoo.Models;
 using BabyMoo.DTOs.Cart;
 using BabyMoo.DTOs.User;
 using BabyMoo.DTOs.Address;
+using BabyMoo.DTOs.Payment;
+using BabyMoo.DTOs.Order;
+
 
 namespace BabyMoo.Mapper
 {
@@ -28,9 +31,22 @@ namespace BabyMoo.Mapper
             CreateMap<User, UserViewDto>();
             CreateMap<CreateAddressDto, Address>();
             CreateMap<Address, AddressDto>().ReverseMap();
+            CreateMap<Payment, PaymentResultDto>()
+                .ForMember(dest => dest.Success, opt => opt.MapFrom(src => src.Status == "PAID"))
+                .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src => src.PaymentId.ToString()));
+            CreateMap<Order, OrderViewDto>()
+     .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
+     .ForMember(dest => dest.AddressLine, opt => opt.MapFrom(src =>
+         src.Address.Street + ", " + src.Address.City + ", " + src.Address.State + ", " + src.Address.PinCode + ", " + src.Address.Country))
+     .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems));
 
 
-            CreateMap<User, ResultDto>();
+            CreateMap<OrderItem, OrderItemDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName));
+        }
+
+
+       
         }
     }
-}
+

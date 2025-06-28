@@ -6,7 +6,7 @@ namespace BabyMoo.Models
     public class User
     {
         [Key]
-        public int UserId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         public string UserName { get; set; }
@@ -28,7 +28,7 @@ namespace BabyMoo.Models
 
 
         public virtual ICollection<Address> Addresses { get; set; } = new HashSet<Address>();
-        //public virtual ICollection<Order> Orders { get; set; } = new HashSet<Order>();
+        public virtual ICollection<Order> Order { get; set; } = new HashSet<Order>();
 
 
     }

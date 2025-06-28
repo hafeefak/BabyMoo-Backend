@@ -151,7 +151,7 @@ namespace BabyMoo.Services.Cart
 
         private async Task<CartModel> GetOrCreateCart(int userId)
         {
-            var userExists = await _context.Users.AnyAsync(u => u.UserId == userId);
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
             if (!userExists)
                 throw new NotFoundException($"User with ID {userId} does not exist");
 

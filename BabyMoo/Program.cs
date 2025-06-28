@@ -13,6 +13,8 @@ using BabyMoo.CloudinaryService;
 using BabyMoo.Services.Wishlists;
 using BabyMoo.Services.Addresses;
 using CloudinaryDotNet;
+using BabyMoo.Services.Payment;
+using BabyMoo.Services.Orders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +67,8 @@ builder.Services.AddScoped<BabyMoo.CloudinaryService.ICloudinaryService, BabyMoo
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<BabyMoo.Services.User.IUserService, BabyMoo.Services.User.UserService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 
 
