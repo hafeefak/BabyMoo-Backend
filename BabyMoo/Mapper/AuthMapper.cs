@@ -28,7 +28,8 @@ namespace BabyMoo.Mapper
                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price))
                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.ImageUrl));
-            CreateMap<User, UserViewDto>();
+            CreateMap<User, UserViewDto>()
+             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
             CreateMap<CreateAddressDto, Address>();
             CreateMap<Address, AddressDto>().ReverseMap();
             CreateMap<Payment, PaymentResultDto>()

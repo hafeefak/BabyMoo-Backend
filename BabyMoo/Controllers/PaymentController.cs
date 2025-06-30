@@ -17,7 +17,7 @@ namespace BabyMoo.Controllers
             _paymentService = paymentService;
         }
 
-        [Authorize(Roles = "User")]
+    
         [HttpPost("start/{orderId}")]
         public async Task<ActionResult<ApiResponse<PaymentResultDto>>> Start(int orderId)
         {
@@ -25,7 +25,7 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<PaymentResultDto>(200, "Payment started", result));
         }
 
-        [Authorize(Roles = "User")]
+       
         [HttpPost("confirm")]
         public async Task<ActionResult<ApiResponse<PaymentResultDto>>> Confirm([FromQuery] string token)
         {

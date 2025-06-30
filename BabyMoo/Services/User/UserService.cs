@@ -20,9 +20,13 @@ namespace BabyMoo.Services.User
 
         public async Task<List<UserViewDto>> GetAllUsers()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users
+                .Where(u => u.Role != "Admin")
+                .ToListAsync();
+
             return _mapper.Map<List<UserViewDto>>(users);
         }
+
 
         public async Task<UserViewDto> GetUserById(int id)
         {

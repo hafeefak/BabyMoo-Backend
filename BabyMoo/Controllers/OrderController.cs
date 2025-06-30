@@ -15,20 +15,22 @@ namespace BabyMoo.Controllers
 
         public OrderController(IOrderService orderService) => _orderService = orderService;
 
-        [Authorize(Roles = "User")]
+      
         [HttpPost]
         public async Task<ActionResult<ApiResponse<string>>> CreateOrder(int addressId, [FromBody] CreateOrderDto dto)
         {
-            int userId = 1;
+            int userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+
             var result = await _orderService.CreateOrderAsync(userId, addressId, dto);
             return StatusCode(result.StatusCode, result);
         }
 
-        [Authorize(Roles = "User")]
+    
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<OrderViewDto>>>> GetMyOrders()
         {
-            int userId = 1;
+            int userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+
             var result = await _orderService.GetOrders(userId);
             return StatusCode(result.StatusCode, result);
         }

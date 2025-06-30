@@ -16,6 +16,8 @@ using CloudinaryDotNet;
 using BabyMoo.Services.Payment;
 using BabyMoo.Services.Orders;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -133,6 +135,7 @@ try
 
     // ✅ Enable Authentication and Authorization
     app.UseAuthentication();
+    app.UseMiddleware<BabyMoo.Middleware.CustomAuthorizationResponseMiddleware>();
     app.UseAuthorization();
 
     app.MapControllers();

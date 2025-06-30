@@ -2,6 +2,7 @@
 using BabyMoo.DTOs.Category;
 using BabyMoo.Models;
 using BabyMoo.Services.Category;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BabyMoo.Controllers
 {
@@ -23,6 +24,7 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<CategoryViewDto>>(200, "Categories retrieved", categories));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AddCategory([FromBody] CategoryViewDto categoryDto)
         {
