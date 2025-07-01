@@ -117,8 +117,8 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
-try
-{
+//try
+//{
 
     var app = builder.Build();
 
@@ -141,9 +141,9 @@ try
     app.MapControllers();
 
     app.Run();
-}
-catch (Exception ex)
-{
-    Console.WriteLine("❌ Startup error: " + ex.Message);
-    throw;
-}
+
+//catch (Exception ex)
+//{
+//    Console.WriteLine("❌ Startup error: " + ex.Message);
+//    throw;
+//}

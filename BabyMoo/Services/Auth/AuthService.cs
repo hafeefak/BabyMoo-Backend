@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BabyMoo.Middleware;
+using System.Security.Cryptography;
 
 namespace BabyMoo.Service.AuthService
 {
@@ -40,20 +41,28 @@ namespace BabyMoo.Service.AuthService
 
         public async Task<ResultDto> LoginAsync(Login loginDto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            var user = await _context.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 throw new UnauthorizedException("Invalid email or password");
 
-            string token = GenerateJwtToken(user);
+            var token = GenerateJwtToken(user);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshTokens.Add(refreshToken);
+            await _context.SaveChangesAsync();
 
             return new ResultDto
             {
-                Message = "Login successful",
-                Token = token,
-                Email = user.Email,
+                Id = user.Id,
                 Name = user.UserName,
-                Role = user.Role
+                Email = user.Email,
+                Role = user.Role,
+                Token = token,
+                RefreshToken = refreshToken.Token,
+                Message = "Login successful"
             };
         }
 
@@ -74,11 +83,53 @@ namespace BabyMoo.Service.AuthService
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private RefreshToken GenerateRefreshToken()
+        {
+            return new RefreshToken
+            {
+                Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        // Refresh token method to create new JWT (optional)
+        public async Task<ResultDto> RefreshAsync(string refreshToken)
+        {
+            var user = await _context.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.RefreshTokens.Any(r => r.Token == refreshToken && r.ExpiresAt > DateTime.UtcNow && !r.IsRevoked));
+
+            if (user == null)
+                throw new UnauthorizedException("Invalid or expired refresh token");
+
+            var newToken = GenerateJwtToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+
+            // Optionally revoke old
+            var oldToken = user.RefreshTokens.FirstOrDefault(r => r.Token == refreshToken);
+            if (oldToken != null) oldToken.IsRevoked = true;
+
+            user.RefreshTokens.Add(newRefreshToken);
+            await _context.SaveChangesAsync();
+
+            return new ResultDto
+            {
+                Id = user.Id,
+                Name = user.UserName,
+                Email = user.Email,
+                Role = user.Role,
+                Token = newToken,
+                RefreshToken = newRefreshToken.Token,
+                Message = "Token refreshed"
+            };
         }
     }
 }

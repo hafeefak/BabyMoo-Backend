@@ -11,6 +11,7 @@ namespace BabyMoo.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<CartModel> Carts { get; set; }
@@ -50,9 +51,11 @@ namespace BabyMoo.Data
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+
 
         }
-       
+
 
     }
 }

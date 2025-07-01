@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BabyMoo.DTOs.Auth;
 using BabyMoo.Service.AuthService;
+using BabyMoo.Middleware;
 using BabyMoo.Models;
-using BabyMoo.Middleware; 
 
 namespace BabyMoo.Controllers
 {
@@ -25,7 +25,7 @@ namespace BabyMoo.Controllers
             if (!ModelState.IsValid)
                 throw new BadRequestException("Invalid registration data.");
 
-            await _authService.RegisterAsync(regDto); 
+            await _authService.RegisterAsync(regDto);
             return Ok(new ApiResponse<string>(200, "Registration successful"));
         }
 
@@ -35,8 +35,15 @@ namespace BabyMoo.Controllers
             if (!ModelState.IsValid)
                 throw new BadRequestException("Invalid login data.");
 
-            var result = await _authService.LoginAsync(loginDto); 
+            var result = await _authService.LoginAsync(loginDto);
             return Ok(new ApiResponse<ResultDto>(200, "Login successful", result));
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] string refreshToken)
+        {
+            var result = await _authService.RefreshAsync(refreshToken);
+            return Ok(new ApiResponse<ResultDto>(200, "Token refreshed", result));
         }
     }
 }

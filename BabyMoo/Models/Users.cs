@@ -31,6 +31,8 @@ namespace BabyMoo.Models
 
         public virtual ICollection<Address> Addresses { get; set; } = new HashSet<Address>();
         public virtual ICollection<Order> Order { get; set; } = new HashSet<Order>();
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new HashSet<RefreshToken>();
+
 
 
     }

@@ -6,5 +6,6 @@ namespace BabyMoo.Service.AuthService
     {
         Task RegisterAsync(Register registerDto);
         Task<ResultDto> LoginAsync(Login loginDto);
+        Task<ResultDto> RefreshAsync(string refreshToken);
     }
 }

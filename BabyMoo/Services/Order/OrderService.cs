@@ -4,8 +4,6 @@ using BabyMoo.Data;
 using BabyMoo.DTOs.Order;
 using BabyMoo.Models;
 
-
-
 namespace BabyMoo.Services.Orders
 {
     public class OrderService : IOrderService
@@ -36,7 +34,13 @@ namespace BabyMoo.Services.Orders
             {
                 var product = await _dbContext.Products.FindAsync(item.ProductId);
                 if (product == null)
-                    return new ApiResponse<string>(404, "Product not found");
+                    return new ApiResponse<string>(404, $"Product not found: ID {item.ProductId}");
+
+                if (product.Quantity < item.Quantity)
+                    return new ApiResponse<string>(400, $"Not enough stock for product: {product.ProductName}");
+
+               
+                product.Quantity -= item.Quantity;
 
                 order.OrderItems.Add(new OrderItem
                 {
@@ -51,9 +55,20 @@ namespace BabyMoo.Services.Orders
             order.TotalAmount = totalAmount;
 
             _dbContext.Orders.Add(order);
+
+         
+            var userCart = await _dbContext.Carts
+                .Include(c => c.CartItems)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (userCart != null && userCart.CartItems.Any())
+            {
+                _dbContext.CartItems.RemoveRange(userCart.CartItems);
+            }
+
             await _dbContext.SaveChangesAsync();
 
-            return new ApiResponse<string>(200, "Order created successfully", null);
+            return new ApiResponse<string>(200, "Order created successfully");
         }
 
         public async Task<ApiResponse<List<OrderViewDto>>> GetOrders(int userId)
@@ -102,7 +117,7 @@ namespace BabyMoo.Services.Orders
             order.Status = newStatus;
             await _dbContext.SaveChangesAsync();
 
-            return new ApiResponse<string>(200, "Order status updated", null);
+            return new ApiResponse<string>(200, "Order status updated");
         }
     }
 }
