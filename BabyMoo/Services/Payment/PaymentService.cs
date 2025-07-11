@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using BabyMoo.Data;
-using BabyMoo.DTOs.Payment;
-using BabyMoo.Middleware;
-using BabyMoo.Services.Cart;
+﻿using BabyMoo.Data;
+using BabyMoo.Models;            // ✅ for ApiResponse<T>
+using BabyMoo.DTOs.Payment;     // ✅ for PaymentResultDto
 using Microsoft.EntityFrameworkCore;
 
 namespace BabyMoo.Services.Payment
@@ -10,83 +8,60 @@ namespace BabyMoo.Services.Payment
     public class PaymentService : IPaymentService
     {
         private readonly AppDbContext _dbContext;
-        private readonly ICartService _cartServices;
-        private readonly IMapper _mapper;
+        private readonly PayPalClient _paypalClient;
 
-        public PaymentService(AppDbContext dbContext, ICartService cartServices, IMapper mapper)
+        public PaymentService(AppDbContext dbContext, PayPalClient paypalClient)
         {
             _dbContext = dbContext;
-            _cartServices = cartServices;
-            _mapper = mapper;
+            _paypalClient = paypalClient;
         }
 
-        public async Task<PaymentResultDto> CreatePayment(int orderId)
+        public async Task<ApiResponse<PaymentResultDto>> CreatePayment(int orderId)
         {
             var order = await _dbContext.Orders.FindAsync(orderId);
             if (order == null)
-                throw new NotFoundException("Order not found");
+                return new ApiResponse<PaymentResultDto>(404, "Order not found");
 
-            var paymentToken = $"PAY-{Guid.NewGuid()}";
+            var paypalOrder = await _paypalClient.CreateOrder(order.TotalAmount);
 
-            var payment = new Models.Payment
-            {
-                OrderId = orderId,
-                Amount = order.TotalAmount,
-                Status = "Pending"
-            };
-            _dbContext.Payments.Add(payment);
-
-            order.PaymentStatus = "PENDING";
-            order.PaymentToken = paymentToken;
-
+            order.PaymentToken = paypalOrder.OrderId;
+            order.PaymentStatus = "Pending";
             await _dbContext.SaveChangesAsync();
 
-            var paymentDto = new PaymentResultDto
+            return new ApiResponse<PaymentResultDto>(200, "Payment started", new PaymentResultDto
             {
                 Success = true,
-                TransactionId = paymentToken,
-                Message = "Payment created successfully"
-            };
-            return paymentDto;
+                TransactionId = paypalOrder.OrderId,
+                ApprovalUrl = paypalOrder.ApproveLink,
+                Message = "Payment created"
+            });
         }
 
-        public async Task<PaymentResultDto> CapturePayment(string paymentToken)
+        public async Task<ApiResponse<PaymentResultDto>> CapturePayment(string token, string payerId)
         {
-            var order = await _dbContext.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.PaymentToken == paymentToken);
+            Console.WriteLine($"[PaymentService] Capturing payment for token: {token} and payerId: {payerId}");
 
+            var order = await _dbContext.Orders.FirstOrDefaultAsync(o => o.PaymentToken == token);
             if (order == null)
-                throw new NotFoundException("Invalid payment token");
+                return new ApiResponse<PaymentResultDto>(404, "Order not found");
 
-            if (order.PaymentStatus == "PAID")
+            var success = await _paypalClient.CaptureOrder(token);
+
+            if (success)
             {
-                return new PaymentResultDto
+                order.PaymentStatus = "PAID";
+                order.Status = "Completed";
+                await _dbContext.SaveChangesAsync();
+
+                return new ApiResponse<PaymentResultDto>(200, "Payment captured", new PaymentResultDto
                 {
                     Success = true,
-                    TransactionId = paymentToken,
-                    Message = "Order already paid"
-                };
+                    TransactionId = order.Id.ToString(),
+                    Message = "Payment successful"
+                });
             }
 
-            var payment = await _dbContext.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
-            if (payment != null)
-            {
-                payment.Status = "PAID";
-            }
-
-            order.PaymentStatus = "PAID";
-            order.Status = "Completed"; // ✅ correct: use Status string
-
-            await _cartServices.ClearCart(order.UserId);
-            await _dbContext.SaveChangesAsync();
-
-            return new PaymentResultDto
-            {
-                Success = true,
-                TransactionId = paymentToken,
-                Message = "Payment successful"
-            };
+            return new ApiResponse<PaymentResultDto>(400, "Payment failed", new PaymentResultDto { Success = false });
         }
     }
 }

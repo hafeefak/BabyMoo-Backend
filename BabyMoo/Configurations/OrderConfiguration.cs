@@ -11,16 +11,15 @@ namespace BabyMoo.Configurations
             builder.HasKey(o => o.Id);
 
             builder.Property(o => o.TotalAmount)
-                   .HasPrecision(18, 2)  // fix warning about decimal type
+                   .HasPrecision(18, 2)  
                    .IsRequired();
 
-            // ✅ configure relationship to User
             builder.HasOne(o => o.User)
                    .WithMany(u => u.Order)
                    .HasForeignKey(o => o.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            // ✅ configure relationship to Address
+         
             builder.HasOne(o => o.Address)
                    .WithMany()
                    .HasForeignKey(o => o.AddressId)

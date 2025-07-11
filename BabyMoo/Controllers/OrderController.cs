@@ -17,7 +17,7 @@ namespace BabyMoo.Controllers
 
       
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<string>>> CreateOrder(int addressId, [FromBody] CreateOrderDto dto)
+        public async Task<ActionResult<ApiResponse<int>>> CreateOrder(int addressId, [FromBody] CreateOrderDto dto)
         {
             int userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
 
@@ -25,7 +25,9 @@ namespace BabyMoo.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-    
+
+
+
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<OrderViewDto>>>> GetMyOrders()
         {

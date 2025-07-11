@@ -66,13 +66,12 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<string>(200, "Product added successfully"));
         }
 
+       
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromForm] ProductFormDto form)
         {
-            if (form.Image == null || form.Image.Length == 0)
-                throw new BadRequestException("Image is required");
-
+            // Image should be optional in update; keep existing if null
             var dto = new ProductDto
             {
                 ProductName = form.ProductName,
@@ -85,6 +84,7 @@ namespace BabyMoo.Controllers
             await _productService.UpdateProduct(id, dto, form.Image);
             return Ok(new ApiResponse<string>(200, "Product updated successfully"));
         }
+
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]

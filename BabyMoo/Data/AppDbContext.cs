@@ -39,10 +39,6 @@ namespace BabyMoo.Data
                 .Property(p => p.Amount)
                 .HasColumnType("decimal(18,2)");
 
-            modelBuilder.Entity<Order>()
-    .HasOne(o => o.User)
-    .WithMany(u => u.Order)
-    .HasForeignKey(o => o.UserId);
 
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new WishlistConfiguration());

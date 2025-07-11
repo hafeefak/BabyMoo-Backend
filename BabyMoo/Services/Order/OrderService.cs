@@ -17,7 +17,7 @@ namespace BabyMoo.Services.Orders
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<string>> CreateOrderAsync(int userId, int addressId, CreateOrderDto dto)
+        public async Task<ApiResponse<int>> CreateOrderAsync(int userId, int addressId, CreateOrderDto dto)
         {
             var order = new Order
             {
@@ -34,12 +34,11 @@ namespace BabyMoo.Services.Orders
             {
                 var product = await _dbContext.Products.FindAsync(item.ProductId);
                 if (product == null)
-                    return new ApiResponse<string>(404, $"Product not found: ID {item.ProductId}");
+                    return new ApiResponse<int>(404, $"Product not found: ID {item.ProductId}");
 
                 if (product.Quantity < item.Quantity)
-                    return new ApiResponse<string>(400, $"Not enough stock for product: {product.ProductName}");
+                    return new ApiResponse<int>(400, $"Not enough stock for product: {product.ProductName}");
 
-               
                 product.Quantity -= item.Quantity;
 
                 order.OrderItems.Add(new OrderItem
@@ -56,7 +55,7 @@ namespace BabyMoo.Services.Orders
 
             _dbContext.Orders.Add(order);
 
-         
+            // Remove user's cart items
             var userCart = await _dbContext.Carts
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
@@ -68,8 +67,10 @@ namespace BabyMoo.Services.Orders
 
             await _dbContext.SaveChangesAsync();
 
-            return new ApiResponse<string>(200, "Order created successfully");
+            // ✅ Return new orderId in data
+            return new ApiResponse<int>(200, "Order created successfully", order.Id);
         }
+
 
         public async Task<ApiResponse<List<OrderViewDto>>> GetOrders(int userId)
         {

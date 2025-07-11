@@ -5,7 +5,8 @@ namespace BabyMoo.Services.Orders
 {
     public interface IOrderService
     {
-        Task<ApiResponse<string>> CreateOrderAsync(int userId, int addressId, CreateOrderDto dto);
+        Task<ApiResponse<int>> CreateOrderAsync(int userId, int addressId, CreateOrderDto dto);
+
         Task<ApiResponse<List<OrderViewDto>>> GetOrders(int userId);
         Task<ApiResponse<List<OrderViewDto>>> GetOrdersforAdmin();
         Task<ApiResponse<int>> TotalProductSold();

@@ -17,6 +17,7 @@ namespace BabyMoo.Controllers
             _categoryService = categoryService;
         }
 
+        // ✅ Get all categories
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<CategoryViewDto>>>> GetAll()
         {
@@ -24,12 +25,22 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<CategoryViewDto>>(200, "Categories retrieved", categories));
         }
 
+        // ✅ Add a new category (Admin only)
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AddCategory([FromBody] CategoryViewDto categoryDto)
         {
             await _categoryService.AddCategory(categoryDto);
             return Ok(new ApiResponse<string>(200, "Category added successfully"));
+        }
+
+        // ✅ Delete category by name (Admin only)
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{categoryName}")]
+        public async Task<IActionResult> DeleteCategoryByName(string categoryName)
+        {
+            await _categoryService.DeleteCategoryByName(categoryName);
+            return Ok(new ApiResponse<string>(200, $"Category '{categoryName}' deleted successfully"));
         }
     }
 }

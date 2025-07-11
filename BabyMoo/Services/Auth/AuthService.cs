@@ -45,7 +45,15 @@ namespace BabyMoo.Service.AuthService
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+            if (user == null)
+                throw new UnauthorizedException("Invalid email or password");
+
+            // ✅ Blocked check here:
+            if (user.Blocked)
+                throw new ForbiddenException("Your account has been blocked by admin.");
+
+            // ✅ Then verify password
+            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 throw new UnauthorizedException("Invalid email or password");
 
             var token = GenerateJwtToken(user);

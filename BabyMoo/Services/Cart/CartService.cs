@@ -4,6 +4,7 @@ using BabyMoo.DTOs.Cart;
 using BabyMoo.Models;
 using BabyMoo.Middleware;
 using Microsoft.EntityFrameworkCore;
+using BabyMoo.Services.Cart;
 
 namespace BabyMoo.Services.Cart
 {
@@ -58,7 +59,14 @@ namespace BabyMoo.Services.Cart
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
-                throw new NotFoundException("Cart is empty or not found");
+            {
+                // instead of throwing, return empty cart
+                return new CartViewDto
+                {
+                    Items = new List<CartItemDto>(),
+                    TotalAmount = 0
+                };
+            }
 
             return new CartViewDto
             {
@@ -75,6 +83,7 @@ namespace BabyMoo.Services.Cart
                 TotalAmount = cart.CartItems.Sum(i => i.TotalPrice)
             };
         }
+
 
         public async Task<CartViewDto> RemoveFromCart(int userId, int cartItemId)
         {

@@ -31,9 +31,24 @@ namespace BabyMoo.Controllers
         [HttpGet("mycart")]
         public async Task<IActionResult> GetCart()
         {
-            int userId = GetUserId();
-            var result = await _cartService.GetCartItems(userId);
-            return Ok(new ApiResponse<CartViewDto>(200, "Cart retrieved", result));
+            try
+            {
+                int userId = GetUserId();
+                var result = await _cartService.GetCartItems(userId);
+                return Ok(new ApiResponse<CartViewDto>(200, "Cart retrieved", result));
+            }
+            catch (UnauthorizedException ex)
+            {
+                return Unauthorized(new ApiResponse<string>(401, ex.Message));
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new ApiResponse<string>(404, ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>(500, "Internal server error"));
+            }
         }
 
         [HttpDelete("remove")]
@@ -73,7 +88,6 @@ namespace BabyMoo.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
                 throw new UnauthorizedException("User ID not found in token.");
-
             return int.Parse(userIdClaim.Value);
         }
     }

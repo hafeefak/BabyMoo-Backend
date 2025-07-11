@@ -9,8 +9,9 @@ namespace BabyMoo.DTOs.Product
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public string CategoryName { get; set; } = string.Empty;
-       
 
-        public IFormFile Image { get; set; }  // ✅ Combine image here
+
+        public IFormFile? Image { get; set; }
+        // ✅ Combine image here
     }
 }

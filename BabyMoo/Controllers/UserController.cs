@@ -9,7 +9,7 @@ namespace BabyMoo.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -19,7 +19,6 @@ namespace BabyMoo.Controllers
             _userService = userService;
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -27,7 +26,7 @@ namespace BabyMoo.Controllers
             return Ok(new ApiResponse<List<UserViewDto>>(200, "User list retrieved", users));
         }
 
-        [Authorize(Roles = "Admin")]
+       
         [HttpGet("users/{id}")]
         public async Task<IActionResult> GetUser(int id)
         {

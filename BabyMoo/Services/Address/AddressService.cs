@@ -21,10 +21,16 @@ namespace BabyMoo.Services.Addresses
         public async Task<IEnumerable<AddressDto>> GetAddress(int userId)
         {
             var addresses = await _context.Addresses
-                .Where(a => a.UserId == userId)
+                .Where(a => a.UserId == userId && !a.IsDeleted)
                 .ToListAsync();
-
             return _mapper.Map<IEnumerable<AddressDto>>(addresses);
+        }
+
+        public async Task<AddressDto> GetAddressById(int userId, int addressId)
+        {
+            var address = await _context.Addresses
+                .FirstOrDefaultAsync(a => a.AddressId == addressId && a.UserId == userId && !a.IsDeleted);
+            return _mapper.Map<AddressDto>(address);
         }
 
         public async Task<AddressDto> AddAddress(int userId, CreateAddressDto addressDto)
@@ -54,14 +60,13 @@ namespace BabyMoo.Services.Addresses
 
         public async Task RemoveAddress(int userId, int addressId)
         {
-            var address = await _context.Addresses
-                .FirstOrDefaultAsync(a => a.UserId == userId && a.AddressId == addressId);
+            var address = await _context.Addresses.FirstOrDefaultAsync(a => a.AddressId == addressId && a.UserId == userId);
+            if (address == null) throw new Exception("Address not found");
 
-            if (address == null)
-                throw new NotFoundException("Address not found");
-
-            _context.Addresses.Remove(address);
+            address.IsDeleted = true;
             await _context.SaveChangesAsync();
         }
+
+
     }
 }

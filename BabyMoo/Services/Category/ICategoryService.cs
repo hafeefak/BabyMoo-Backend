@@ -6,6 +6,8 @@ namespace BabyMoo.Services.Category
     {
         Task<List<CategoryViewDto>> GetAllCategories();
         Task<bool> AddCategory(CategoryViewDto categoryDto);
+        Task<bool> DeleteCategoryByName(string categoryName);
     }
+     
 
-}
+    }

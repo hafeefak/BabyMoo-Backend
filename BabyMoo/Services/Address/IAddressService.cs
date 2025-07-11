@@ -8,5 +8,7 @@ namespace BabyMoo.Services.Addresses
         Task<AddressDto> AddAddress(int userId, CreateAddressDto addressDto);
         Task RemoveAddress(int userId, int addressId);
         Task<AddressDto> UpdateAddress(int userId, AddressDto addressDto);
+        Task<AddressDto?> GetAddressById(int userId, int addressId);
+
     }
 }

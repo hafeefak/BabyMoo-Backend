@@ -9,15 +9,15 @@ namespace BabyMoo.Models
         [Required]
         public decimal TotalAmount { get; set; }
 
-        public string Status { get; set; } = "Pending"; // use this for "Completed"
+        public string Status { get; set; } = "Pending"; 
 
         public string PaymentStatus { get; set; } = "Pending";
-        public string? PaymentMethod { get; set; }    // Paypal / COD etc
+        public string? PaymentMethod { get; set; }  
         public string? PaymentReferenceId { get; set; }
 
-        public string? PaymentToken { get; set; } // ✅ new field for fake token
+        public string? PaymentToken { get; set; } 
 
-        // Relations
+    
         public int UserId { get; set; }
         public User User { get; set; }
 

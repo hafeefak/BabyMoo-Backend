@@ -9,7 +9,12 @@ namespace BabyMoo.Models
         [Required]
         public decimal Amount { get; set; }
 
+        [Required]
         public string Status { get; set; } = "Pending";
+
+        public string PayPalOrderId { get; set; }
+        public string PayerId { get; set; }
+        public string CaptureId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

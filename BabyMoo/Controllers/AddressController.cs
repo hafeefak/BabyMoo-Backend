@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using BabyMoo.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 namespace BabyMoo.Controllers
 {
@@ -38,6 +39,19 @@ namespace BabyMoo.Controllers
             var result = await _addressService.GetAddress(userId);
             return Ok(new ApiResponse<IEnumerable<AddressDto>>(200, "Addresses retrieved", result));
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAddressById(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+            var address = await _addressService.GetAddressById(userId, id);
+
+            if (address == null)
+                return NotFound(new ApiResponse<string>(404, "Address not found"));
+
+            return Ok(new ApiResponse<AddressDto>(200, "Address retrieved", address));
+        }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAddress(int id, [FromBody] AddressDto addressDto)

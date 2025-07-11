@@ -24,7 +24,6 @@ namespace BabyMoo.Services.Category
             return _mapper.Map<List<CategoryViewDto>>(categories);
         }
 
- 
         public async Task<bool> AddCategory(CategoryViewDto categoryDto)
         {
             if (categoryDto == null)
@@ -38,6 +37,24 @@ namespace BabyMoo.Services.Category
 
             var category = _mapper.Map<Models.Category>(categoryDto);
             _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        // ✅ New method: Delete category by name
+        public async Task<bool> DeleteCategoryByName(string categoryName)
+        {
+            if (string.IsNullOrWhiteSpace(categoryName))
+                throw new BadRequestException("Category name is required");
+
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.CategoryName.ToLower() == categoryName.ToLower());
+
+            if (category == null)
+                throw new NotFoundException("Category not found");
+
+            _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
 
             return true;

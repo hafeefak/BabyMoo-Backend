@@ -18,7 +18,7 @@ namespace BabyMoo.Middleware
         {
             await _next(context);
 
-            // If status code is 401 (unauthorized) and no response body has been written
+    
             if (context.Response.StatusCode == StatusCodes.Status401Unauthorized && !context.Response.HasStarted)
             {
                 context.Response.ContentType = "application/json";
@@ -29,7 +29,6 @@ namespace BabyMoo.Middleware
                 await context.Response.WriteAsync(json);
             }
 
-            // If status code is 403 (forbidden) and no response body has been written
             else if (context.Response.StatusCode == StatusCodes.Status403Forbidden && !context.Response.HasStarted)
             {
                 context.Response.ContentType = "application/json";

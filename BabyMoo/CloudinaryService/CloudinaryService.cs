@@ -32,7 +32,7 @@ namespace BabyMoo.CloudinaryService
                 {
                     File = new FileDescription(file.FileName, stream),
                     Transformation = new Transformation().Height(500).Width(500).Crop("fill"),
-                    Folder = "babymoo" // Optional folder name in Cloudinary
+                    Folder = "babymoo" 
                 };
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);

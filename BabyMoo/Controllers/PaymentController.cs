@@ -1,7 +1,8 @@
-﻿using BabyMoo.DTOs.Payment;
-using BabyMoo.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using BabyMoo.DTOs.Payment;
 using BabyMoo.Services.Payment;
-using Microsoft.AspNetCore.Authorization;
+using BabyMoo.Models;              // ✅ add this for ApiResponse<T>
 using Microsoft.AspNetCore.Mvc;
 
 namespace BabyMoo.Controllers
@@ -17,20 +18,40 @@ namespace BabyMoo.Controllers
             _paymentService = paymentService;
         }
 
-    
+        // ✅ Starts the PayPal payment → gets approval URL
         [HttpPost("start/{orderId}")]
-        public async Task<ActionResult<ApiResponse<PaymentResultDto>>> Start(int orderId)
+        public async Task<IActionResult> Start(int orderId)
         {
-            var result = await _paymentService.CreatePayment(orderId);
-            return Ok(new ApiResponse<PaymentResultDto>(200, "Payment started", result));
+            var res = await _paymentService.CreatePayment(orderId);
+            return StatusCode(res.StatusCode, res);
         }
 
-       
+        // ✅ Confirms/captures payment with token & payerId
         [HttpPost("confirm")]
-        public async Task<ActionResult<ApiResponse<PaymentResultDto>>> Confirm([FromQuery] string token)
+        public async Task<IActionResult> Confirm([FromBody] ConfirmPaymentRequest request)
         {
-            var result = await _paymentService.CapturePayment(token);
-            return Ok(new ApiResponse<PaymentResultDto>(200, "Payment confirmed", result));
+            Console.WriteLine($"✅ Received confirm request: token={request?.Token}, payerId={request?.PayerId}");
+
+            if (string.IsNullOrEmpty(request?.Token) || string.IsNullOrEmpty(request?.PayerId))
+            {
+                Console.WriteLine("❌ Missing token or payerId in request");
+                return BadRequest(new ApiResponse<PaymentResultDto>(400, "Token and PayerId are required"));
+            }
+
+            var res = await _paymentService.CapturePayment(request.Token, request.PayerId);
+            return StatusCode(res.StatusCode, res);
         }
+    }
+
+    // ✅ Request DTO for confirm
+    public class ConfirmPaymentRequest
+    {
+        [Required]
+        [JsonPropertyName("token")]
+        public string Token { get; set; }
+
+        [Required]
+        [JsonPropertyName("payerId")]
+        public string PayerId { get; set; }
     }
 }

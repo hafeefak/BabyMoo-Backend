@@ -3,7 +3,8 @@
     public class PaymentResultDto
     {
         public bool Success { get; set; }
-        public string TransactionId { get; set; } = string.Empty;
-        public string Message { get; set; } = string.Empty;
+        public string TransactionId { get; set; }
+        public string ApprovalUrl { get; set; } // used in create
+        public string Message { get; set; }
     }
 }

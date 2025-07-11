@@ -16,24 +16,16 @@ using CloudinaryDotNet;
 using BabyMoo.Services.Payment;
 using BabyMoo.Services.Orders;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ Add Swagger with JWT authentication support
+// ✅ Swagger config with JWT
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "BabyMoo",
-        Version = "v1"
-    });
-
-    // 🔐 JWT Authentication in Swagger
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "BabyMoo", Version = "v1" });
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -41,26 +33,15 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' followed by space and your token. Example: Bearer eyJhbGciOiJIUzI1NiIs..."
+        Description = "Enter 'Bearer' + space + token. Example: Bearer eyJhbGci..."
     });
-
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, new string[]{} }
     });
 });
 
-// ✅ Register custom services
+// ✅ Register your services
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -71,24 +52,23 @@ builder.Services.AddScoped<BabyMoo.Services.User.IUserService, BabyMoo.Services.
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<PayPalClient>();
+builder.Services.AddHttpClient();
 
 
 
-
-
-// ✅ Configure Entity Framework
+// ✅ DB Context
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AuthProfile).Assembly);
 
-// ✅ JWT Authentication configuration
+// ✅ JWT Authentication config
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
@@ -100,50 +80,52 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
         ClockSkew = TimeSpan.Zero
     };
-
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
         {
             if (context.Exception is SecurityTokenExpiredException)
-            {
                 context.Response.Headers.Append("Token-Expired", "true");
-            }
             return Task.CompletedTask;
         }
     };
 });
-//try
-//{
 
-    var app = builder.Build();
+// ✅ Add CORS to allow React frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 
-    // Configure the HTTP request pipeline
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseMiddleware<BabyMoo.Middleware.ExceptionMiddleware>();
-        app.UseDeveloperExceptionPage();
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+var app = builder.Build();
 
-    app.UseHttpsRedirection();
+// Pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<BabyMoo.Middleware.ExceptionMiddleware>();
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-    // ✅ Enable Authentication and Authorization
-    app.UseAuthentication();
-    app.UseMiddleware<BabyMoo.Middleware.CustomAuthorizationResponseMiddleware>();
-    app.UseAuthorization();
+app.UseHttpsRedirection();
 
-    app.MapControllers();
+// ✅ Add CORS before auth
+app.UseCors("AllowReactApp");
 
-    app.Run();
+app.UseAuthentication();
+app.UseMiddleware<BabyMoo.Middleware.CustomAuthorizationResponseMiddleware>();
+app.UseAuthorization();
 
-//catch (Exception ex)
-//{
-//    Console.WriteLine("❌ Startup error: " + ex.Message);
-//    throw;
-//}
+app.MapControllers();
+
+app.Run();
